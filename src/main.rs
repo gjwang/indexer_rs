@@ -1,4 +1,5 @@
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
+use serde_json::json;
 
 #[get("/")]
 async fn hello() -> impl Responder {
@@ -11,7 +12,8 @@ async fn echo(req_body: String) -> impl Responder {
 }
 
 async fn health() -> impl Responder {
-    HttpResponse::Ok().body("{\"status\":0, \"msg\":\"ok\"}")
+    let resp = json!({"status":0,"msg":"ok"});
+    HttpResponse::Ok().body(serde_json::to_string_pretty(&resp).unwrap())
 }
 
 #[actix_web::main]
