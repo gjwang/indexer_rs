@@ -9,10 +9,10 @@ async fn main() -> Result<()> {
     println!("Connecting to SNI proxy as described in cloud config yaml ...");
     dotenv::dotenv().expect("Failed to read .env file");
 
-    let bundle_config_yaml_file: &String = &std::env::var("SCYLLA_BUNDLE_CONFIG_YAML_FILE")
+    let bundle_config_file: &String = &std::env::var("SCYLLA_BUNDLE_CONFIG_YAML_FILE")
         .expect("scylla_bundle_config_file not found");
 
-    let session = CloudSessionBuilder::new(Path::new(bundle_config_yaml_file))
+    let session = CloudSessionBuilder::new(Path::new(bundle_config_file))
         .unwrap()
         .build()
         .await
