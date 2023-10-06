@@ -3,6 +3,8 @@ use web3::transports::Http;
 use web3::types::{BlockNumber, Transaction, Address, U64, BlockId};
 use std::str::FromStr;
 
+#[macro_use]
+extern crate fstrings;
 extern crate dotenv;
 
 async fn fetch_transactions(web3: &Web3<Http>, address: Address) -> web3::Result<Vec<Transaction>> {
@@ -41,7 +43,9 @@ async fn main() -> web3::Result<()> {
     dotenv::dotenv().expect("Failed to read .env file");
     let infura_api_key = std::env::var("INFURA_API_KEY").expect("INFURA_API_KEY not found");
     println!("INFURA_API_KEY: {}", infura_api_key);
-    let rpc: &String = &format!("https://mainnet.infura.io/v3/{}", infura_api_key);
+
+    // let rpc: &String = &format!("https://mainnet.infura.io/v3/{}", infura_api_key);
+    let rpc: &String = &f!("https://mainnet.infura.io/v3/{infura_api_key}");
 
     let http = Http::new(rpc)?;
     let web3 = Web3::new(http);
@@ -53,14 +57,14 @@ async fn main() -> web3::Result<()> {
     let mut accounts = web3.eth().accounts().await?;
     println!("Accounts: {:?}", accounts);
 
-    accounts.push("0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045".parse().unwrap());
+    let address: Address = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045".parse().unwrap();
+    accounts.push(address);
 
     println!("Calling balance.");
     for account in accounts {
         let balance = web3.eth().balance(account, None).await?;
         println!("Balance of {:?}: {}", account, balance);
     }
-
 
     //Vitalik Address
     let address = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";  // Replace with desired Ethereum address
