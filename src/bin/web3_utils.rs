@@ -5,7 +5,7 @@ use std::str::FromStr;
 
 extern crate dotenv;
 
-async fn fetch_transactions(web3: &web3::Web3<Http>, address: Address) -> web3::Result<Vec<Transaction>> {
+async fn fetch_transactions(web3: &Web3<Http>, address: Address) -> web3::Result<Vec<Transaction>> {
     let mut transactions: Vec<Transaction> = Vec::new();
 
     // Assuming we're only fetching the last 10 blocks, adjust as needed.
@@ -14,8 +14,8 @@ async fn fetch_transactions(web3: &web3::Web3<Http>, address: Address) -> web3::
     let start_block = (latest_block as isize - 100).max(0) as usize;
 
     for i in start_block..=latest_block {
-        let block_number = BlockNumber::Number(U64::from(i));
-        let block_opt = web3.eth().block_with_txs(BlockId::Number(block_number)).await?;
+        let block_number = BlockId::Number(BlockNumber::Number(U64::from(i)));
+        let block_opt = web3.eth().block_with_txs(block_number).await?;
         if let Some(block) = block_opt {
             for tx in block.transactions {
                 if tx.from == Some(address) || tx.to == Some(address) {
