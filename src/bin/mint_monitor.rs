@@ -2,28 +2,14 @@ extern crate web3;
 extern crate ethabi;
 
 use web3::transports::Http;
+use web3::types::U64;
 use web3::Web3;
 
-#[macro_use]extern crate fstrings;
+#[macro_use]
+extern crate fstrings;
 extern crate dotenv;
 
-#[tokio::main]
-async fn main() -> web3::Result<()> {
-    dotenv::dotenv().expect("Failed to read .env file");
-    let infura_api_key = std::env::var("INFURA_API_KEY").expect("INFURA_API_KEY not found");
-    println!("INFURA_API_KEY: {}", infura_api_key);
-
-    // let rpc: &String = &format!("https://mainnet.infura.io/v3/{}", infura_api_key);
-    let rpc: &String = &f!("https://mainnet.infura.io/v3/{infura_api_key}");
-
-    let http = Http::new(rpc)?;
-    let web3 = Web3::new(http);
-
-
-    // Fetch the latest block number
-    let block_number = web3.eth().block_number().await?;
-
-    // Fetch the block data
+async fn monitor_mint_event(block_number: U64, web3: Web3<Http>) -> web3::Result<()>   {    // Fetch the block data
     let block = web3.eth().block_with_txs(web3::types::BlockId::Number(block_number.into())).await?;
 
     if let Some(b) = block {
@@ -53,6 +39,47 @@ async fn main() -> web3::Result<()> {
     } else {
         println!("Block data not found.");
     }
+
+    Ok(())
+}
+
+#[tokio::main]
+async fn main() -> web3::Result<()> {
+    dotenv::dotenv().expect("Failed to read .env file");
+    let infura_api_key = std::env::var("INFURA_API_KEY").expect("INFURA_API_KEY not found");
+    println!("INFURA_API_KEY: {}", infura_api_key);
+
+    // let rpc: &String = &format!("https://mainnet.infura.io/v3/{}", infura_api_key);
+    let rpc: &String = &f!("https://mainnet.infura.io/v3/{infura_api_key}");
+
+    let http = Http::new(rpc)?;
+    let web3 = Web3::new(http);
+
+    loop {
+        // Fetch the latest block number
+        match web3.eth().block_number().await {
+            Ok(block_num) => {
+                // Fetch the latest block number
+                let block_number = web3.eth().block_number().await?;
+                println!("block_number {:?}", block_number);
+
+
+                //How to reuse web3?
+                let http = Http::new(rpc)?;
+                let web3 = Web3::new(http);
+                monitor_mint_event(block_number, web3).await?;
+
+                println!("Latest Ethereum block number: {}", block_num);
+                tokio::time::sleep(tokio::time::Duration::from_secs(10)).await; // Sleep for 10 seconds before querying again
+            }
+
+            Err(e) => {
+                eprintln!("Failed to fetch latest block number: {}", e);
+                tokio::time::sleep(tokio::time::Duration::from_secs(60)).await; // If there's an error, sleep for 60 seconds before retrying
+            }
+        }
+    }
+
 
     Ok(())
 }
