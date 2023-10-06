@@ -3,8 +3,7 @@ use web3::transports::Http;
 use web3::types::{BlockNumber, Transaction, Address, U64, BlockId};
 use std::str::FromStr;
 
-#[macro_use]
-extern crate fstrings;
+#[macro_use]extern crate fstrings;
 extern crate dotenv;
 
 async fn fetch_transactions(web3: &Web3<Http>, address: Address) -> web3::Result<Vec<Transaction>> {

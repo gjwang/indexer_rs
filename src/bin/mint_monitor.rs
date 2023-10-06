@@ -3,12 +3,22 @@ extern crate ethabi;
 
 use web3::transports::Http;
 use web3::Web3;
-use web3::contract::tokens::Tokenizable;
+
+#[macro_use]extern crate fstrings;
+extern crate dotenv;
 
 #[tokio::main]
 async fn main() -> web3::Result<()> {
-    let http = Http::new("https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID")?;
+    dotenv::dotenv().expect("Failed to read .env file");
+    let infura_api_key = std::env::var("INFURA_API_KEY").expect("INFURA_API_KEY not found");
+    println!("INFURA_API_KEY: {}", infura_api_key);
+
+    // let rpc: &String = &format!("https://mainnet.infura.io/v3/{}", infura_api_key);
+    let rpc: &String = &f!("https://mainnet.infura.io/v3/{infura_api_key}");
+
+    let http = Http::new(rpc)?;
     let web3 = Web3::new(http);
+
 
     // Fetch the latest block number
     let block_number = web3.eth().block_number().await?;
@@ -23,7 +33,7 @@ async fn main() -> web3::Result<()> {
                 for log in r.logs {
                     let raw_log = (log.topics, log.data.0);
                     // Assuming you have the ERC-721 contract ABI
-                    let contract = ethabi::Contract::load(erc721_abi.as_bytes()).unwrap();
+                    let contract = ethabi::Contract::load(ERC721_ABI.as_bytes()).unwrap();
 
                     // Try to decode the Transfer event
                     if let Ok(event) = contract.event("Transfer") {
@@ -49,7 +59,7 @@ async fn main() -> web3::Result<()> {
 
 // ERC-721 ABI for the Transfer event
 // This is a very minimal ABI. In a real application, you'd probably load this from a file or an external source.
-const erc721_abi: &str = r#"
+const ERC721_ABI: &str = r#"
 [
     {
         "anonymous": false,
