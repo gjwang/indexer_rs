@@ -19,14 +19,17 @@ async fn fetch_transactions(web3: &Web3<Http>, address: Address) -> web3::Result
 
         let block_number = BlockId::Number(BlockNumber::Number(U64::from(i)));
         let block_opt = web3.eth().block_with_txs(block_number).await?;
-        if let Some(block) = block_opt {
-            for tx in block.transactions {
-                if tx.from == Some(address) || tx.to == Some(address) {
-                    println!("Transaction: {:?} {:?}", i, tx);
-                    transactions.push(tx);
+        match block_opt {
+            Some(block) => {
+                for tx in block.transactions {
+                    if tx.from == Some(address) || tx.to == Some(address) {
+                        println!("Transaction: {:?} {:?}", i, tx);
+                        transactions.push(tx);
+                    }
                 }
-            }
-        }
+            },
+            None => {},
+        };
     }
 
     Ok(transactions)
