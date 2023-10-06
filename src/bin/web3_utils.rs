@@ -10,10 +10,13 @@ async fn fetch_transactions(web3: &Web3<Http>, address: Address) -> web3::Result
 
     // Assuming we're only fetching the last 10 blocks, adjust as needed.
     // Convert U64 to usize for looping
+
     let latest_block = web3.eth().block_number().await?.as_usize();
     let start_block = (latest_block as isize - 100).max(0) as usize;
 
     for i in start_block..=latest_block {
+        println!("Scan block_num: {:?}", i);
+
         let block_number = BlockId::Number(BlockNumber::Number(U64::from(i)));
         let block_opt = web3.eth().block_with_txs(block_number).await?;
         if let Some(block) = block_opt {
