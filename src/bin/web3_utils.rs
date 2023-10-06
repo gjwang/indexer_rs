@@ -1,6 +1,6 @@
 use web3::Web3;
 use web3::transports::Http;
-use web3::types::{Block, Transaction, Address, U64};
+use web3::types::{BlockNumber, Transaction, Address, U64, BlockId};
 use std::str::FromStr;
 
 extern crate dotenv;
@@ -11,15 +11,15 @@ async fn fetch_transactions(web3: &web3::Web3<Http>, address: Address) -> web3::
     // Assuming we're only fetching the last 10 blocks, adjust as needed.
     // Convert U64 to usize for looping
     let latest_block = web3.eth().block_number().await?.as_usize();
-    let start_block = (latest_block as isize - 10).max(0) as usize;
+    let start_block = (latest_block as isize - 100).max(0) as usize;
 
     for i in start_block..=latest_block {
-        let block_number = web3::types::BlockNumber::Number(U64::from(i));
-        // let block: Block<Transaction> = web3.eth().block_with_txs(web3::types::BlockId::Number(i.into())).await?;
-        let block_opt = web3.eth().block_with_txs(web3::types::BlockId::Number(block_number)).await?;
+        let block_number = BlockNumber::Number(U64::from(i));
+        let block_opt = web3.eth().block_with_txs(BlockId::Number(block_number)).await?;
         if let Some(block) = block_opt {
             for tx in block.transactions {
                 if tx.from == Some(address) || tx.to == Some(address) {
+                    println!("Transaction: {:?} {:?}", i, tx);
                     transactions.push(tx);
                 }
             }
@@ -46,7 +46,8 @@ async fn main() -> web3::Result<()> {
     println!("Calling accounts.");
     let mut accounts = web3.eth().accounts().await?;
     println!("Accounts: {:?}", accounts);
-    accounts.push("00a329c0648769a73afac7f9381e08fb43dbea72".parse().unwrap());
+
+    accounts.push("0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045".parse().unwrap());
 
     println!("Calling balance.");
     for account in accounts {
@@ -55,8 +56,9 @@ async fn main() -> web3::Result<()> {
     }
 
 
-    let address_str = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";  // Replace with desired Ethereum address
-    let address = Address::from_str(address_str).expect("Invalid address");
+    //Vitalik Address
+    let address = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";  // Replace with desired Ethereum address
+    let address = Address::from_str(address).expect("Invalid address");
 
     let transactions = fetch_transactions(&web3, address).await?;
     for tx in transactions {
