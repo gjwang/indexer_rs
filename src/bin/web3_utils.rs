@@ -55,7 +55,7 @@ async fn main() -> web3::Result<()> {
     }
 
 
-    let address_str = "YOUR_ETH_ADDRESS";  // Replace with desired Ethereum address
+    let address_str = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";  // Replace with desired Ethereum address
     let address = Address::from_str(address_str).expect("Invalid address");
 
     let transactions = fetch_transactions(&web3, address).await?;
