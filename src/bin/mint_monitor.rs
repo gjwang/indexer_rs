@@ -37,6 +37,8 @@ async fn fetch_block(web3: &Web3<Http>, block_num: u64) -> web3::Result<Option<B
     parse what we want.
     And later do different parse decoder base on local data.
     No need to do duplicate request from remote RPC node any more
+
+    And fetch block data order by reverse, handle the latest data first
  */
 
 
@@ -44,6 +46,10 @@ async fn process_mint_event(block:Block<Transaction>, web3: &Web3<Http>) -> web3
     let path = ERC721_ABI_FILE;
     let content = fs::read_to_string(path)?;
     let contract = ethabi::Contract::load(content.as_bytes()).unwrap();
+
+    let block_num = block.number.unwrap().as_u64();
+    let count = block.transactions.len();
+    println!("Block number: {}, Number of transactions: {}", block_num, count);
 
     for tx in block.transactions {
         //TODO: make this batch request
