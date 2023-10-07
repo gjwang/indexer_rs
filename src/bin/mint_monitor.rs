@@ -32,6 +32,13 @@ async fn fetch_block(web3: &Web3<Http>, block_num: u64) -> web3::Result<Option<B
     Ok(block)
 }
 
+/**
+ TODO: so we can fetch every thing from rpc and save it to a local DB, like Scylladb
+    parse what we want.
+    And later do different parse decoder base on local data.
+    No need to do duplicate request from remote RPC node any more
+ */
+
 
 async fn process_mint_event(block:Block<Transaction>, web3: &Web3<Http>) -> web3::Result<()> {    // Fetch the block data
     let path = ERC721_ABI_FILE;
