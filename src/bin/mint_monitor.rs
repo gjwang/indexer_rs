@@ -2,6 +2,7 @@
 use std::time::Duration;
 use futures::future::join_all;
 use std::time::Instant;
+use log::{info, error};
 
 extern crate web3;
 extern crate ethabi;
@@ -25,10 +26,10 @@ const ERC721_ABI_FILE: &str = "src/abi/erc721_abi.json";
 
 async fn fetch_block(web3: &Web3<Http>, block_num: u64) -> web3::Result<Option<Block<Transaction>>> {
     let block_id = BlockId::Number(BlockNumber::Number(U64::from(block_num)));
-    let start = Instant::now();
+    // let start = Instant::now();
     let block = web3.eth().block_with_txs(block_id).await?;
-    let duration = start.elapsed();
-    println!("fetch_block: {:?}", duration);
+    // let duration = start.elapsed();
+    // println!("fetch_block: {:?}", duration);
     Ok(block)
 }
 
@@ -49,14 +50,14 @@ async fn process_mint_event(block:Block<Transaction>, web3: &Web3<Http>) -> web3
 
     let block_num = block.number.unwrap().as_u64();
     let count = block.transactions.len();
-    println!("Block number: {}, Number of transactions: {}", block_num, count);
+    info!("Block number: {}, Number of transactions: {}", block_num, count);
 
     for tx in block.transactions {
         //TODO: make this batch request
-        let start = Instant::now();
+        // let start = Instant::now();
         let receipt = web3.eth().transaction_receipt(tx.hash).await?;
-        let duration = start.elapsed();
-        println!("fetch transaction_receipt: {:?}", duration);
+        // let duration = start.elapsed();
+        // println!("fetch transaction_receipt: {:?}", duration);
 
         if let Some(r) = receipt {
             for log in r.logs {
@@ -81,43 +82,6 @@ async fn process_mint_event(block:Block<Transaction>, web3: &Web3<Http>) -> web3
     Ok(())
 }
 
-// async fn monitor_mint_event(block_number: U64, web3: &Web3<Http>) -> web3::Result<()> {    // Fetch the block data
-//     //TODO batch poll
-//     let block = web3.eth().block_with_txs(web3::types::BlockId::Number(block_number.into())).await?;
-//
-//     let path = ERC721_ABI_FILE;
-//     let content = fs::read_to_string(path)?;
-//
-//     let contract = ethabi::Contract::load(content.as_bytes()).unwrap();
-//
-//     if let Some(b) = block {
-//         for tx in b.transactions {
-//             let receipt = web3.eth().transaction_receipt(tx.hash).await?;
-//             if let Some(r) = receipt {
-//                 for log in r.logs {
-//                     let raw_log = (log.topics, log.data.0);
-//
-//                     // Try to decode the Transfer event
-//                     if let Ok(event) = contract.event("Transfer") {
-//                         if let Ok(decoded) = event.parse_log(raw_log.into()) {
-//                             let from: ethabi::Address = decoded.params[0].value.clone().into_address().unwrap();
-//                             let to: ethabi::Address = decoded.params[1].value.clone().into_address().unwrap();
-//
-//                             if from == ethabi::Address::default() {
-//                                 println!("Mint event detected!");
-//                                 println!("Minted to: {:?}", to);
-//                             }
-//                         }
-//                     }
-//                 }
-//             }
-//         }
-//     } else {
-//         println!("Block data not found.");
-//     }
-//
-//     Ok(())
-// }
 
 async fn batch_request_blocks(start_block: u64, end_block: u64, web3: &Web3<Http>)
     -> Result<Vec<web3::Result<Option<Block<Transaction>>>>, web3::Error> {
@@ -159,6 +123,11 @@ async fn main() -> web3::Result<()> {
     let full_filename = home_dir.join(f!("{BASE_PATH}/{FILE_NAME}"));
     println!("full_filename {:?}", full_filename);
 
+    // Initialize log4rs with file rotation
+    log4rs::init_file("config/log4rs.yml", Default::default()).unwrap();
+
+    info!("full_filename {:?}", full_filename);
+    // error!("This is an error log.");
 
     loop {
         let mut  eth_last_blk_num = 0;
@@ -176,6 +145,7 @@ async fn main() -> web3::Result<()> {
 
         let end_blk = (start_block + 10).min(latest_block);
         println!("start_block={} end_blk={}, latest_block={} late_blk={}", end_blk, start_block, latest_block, latest_block-end_blk);
+        info!("start_block={} end_blk={}, latest_block={} late_blk={}", end_blk, start_block, latest_block, latest_block-end_blk);
 
         let block_vec = batch_request_blocks(start_block, end_blk, &web3).await?;
         for block in block_vec {
