@@ -1,4 +1,10 @@
-{
-  "name": "John",
-  "age": 23
-}
+[
+  {
+    "network": "eth",
+    "block_num": 126
+  },
+  {
+    "network": "bsc",
+    "block_num": 126
+  }
+]

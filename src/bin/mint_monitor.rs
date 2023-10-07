@@ -3,6 +3,10 @@ use std::time::Duration;
 extern crate web3;
 extern crate ethabi;
 
+use serde::{Deserialize, Serialize};
+use std::fs;
+use std::path::Path;
+
 use web3::transports::Http;
 use web3::types::U64;
 use web3::Web3;
@@ -10,6 +14,21 @@ use web3::Web3;
 #[macro_use]
 extern crate fstrings;
 extern crate dotenv;
+
+
+
+
+#[derive(Debug, Serialize, Deserialize)]
+struct BlockchainInfo {
+    network: String,
+    block_num: u64,
+}
+
+async fn read_json_file<P: AsRef<Path>>(path: P) -> Result<Data, Box<dyn std::error::Error>> {
+    let content = fs::read_to_string(path)?;
+    let data: Data = serde_json::from_str(&content)?;
+    Ok(data)
+}
 
 async fn monitor_mint_event(block_number: U64, web3: &Web3<Http>) -> web3::Result<()>   {    // Fetch the block data
     let block = web3.eth().block_with_txs(web3::types::BlockId::Number(block_number.into())).await?;
