@@ -152,7 +152,7 @@ async fn main() -> web3::Result<()> {
         let latest_block = web3.eth().block_number().await?.as_u64();
         let start_block = eth_last_blk_num;
 
-        let end_blk = (start_block + 10).min(latest_block);
+        let end_blk = (start_block + 50).min(latest_block);
         println!("start_block={} end_blk={}, latest_block={} late_blk={}", end_blk, start_block, latest_block, latest_block-end_blk);
 
         let block_vec = batch_request_blocks(start_block, end_blk, &web3).await?;
@@ -160,8 +160,8 @@ async fn main() -> web3::Result<()> {
             if let Ok(blk) = block {
                 if let Some(b) = blk {
                     let block_num = b.number.unwrap().as_u64();
-                    println!("Block number: {:?}", b.number);
-                    process_mint_event(b, &web3);
+                    println!("Block number: {}", block_num);
+                    let _ = process_mint_event(b, &web3).await;
 
                     //TODO: maybe block num will has some gap, missing some blocks
                     //Log it, find it out, handle it
@@ -184,12 +184,10 @@ async fn main() -> web3::Result<()> {
         let delay_blk_num = latest_block - eth_last_blk_num;
         println!("delay_blk_num data: {}", delay_blk_num);
 
-        let mut sleep_sec  = 10;
         if delay_blk_num == 0 {
-            sleep_sec = 0;
+            let mut sleep_sec  = 10;
+            tokio::time::sleep(Duration::from_secs(sleep_sec)).await;
         }
-        // Wait for a specified duration before polling again.
-        tokio::time::sleep(Duration::from_secs(sleep_sec)).await;
     }
 
     // Ok(())
