@@ -20,6 +20,7 @@ use std::path::Path;
 const ERC721_ABI_FILE: &str = "src/abi/erc721_abi.json";
 
 async fn monitor_mint_event(block_number: U64, web3: &Web3<Http>) -> web3::Result<()>   {    // Fetch the block data
+    //TODO batch poll
     let block = web3.eth().block_with_txs(web3::types::BlockId::Number(block_number.into())).await?;
 
     let path = ERC721_ABI_FILE;
@@ -83,7 +84,7 @@ async fn main() -> web3::Result<()> {
         let latest_block = web3.eth().block_number().await?.as_u64();
         let start_block = eth_last_blk_num;
 
-        println!("start to scan from{} to {}, late={} blocks", start_block, latest_block, latest_block-start_block);
+        println!("start to scan from {} to {}, late={} blocks", start_block, latest_block, latest_block-start_block);
 
         for block_num in start_block..=latest_block {
             println!("Scan block_num: {:?}", block_num);

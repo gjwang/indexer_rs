@@ -1,4 +1,3 @@
-// src/utils/file_utils.rs
 use std::fs;
 use std::fs::{File, OpenOptions};
 use std::io::{Error, Write};
