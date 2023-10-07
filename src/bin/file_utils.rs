@@ -16,7 +16,7 @@ mod tests {
 
     fn cleanup() {
         if Path::new(TEST_FILE).exists() {
-            // fs::remove_file(TEST_FILE).unwrap();
+            fs::remove_file(TEST_FILE).unwrap();
         }
     }
 
