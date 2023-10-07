@@ -33,8 +33,6 @@ async fn monitor_mint_event(block_number: U64, web3: &Web3<Http>) -> web3::Resul
             if let Some(r) = receipt {
                 for log in r.logs {
                     let raw_log = (log.topics, log.data.0);
-                    // Assuming you have the ERC-721 contract ABI
-                    // let contract = ethabi::Contract::load(ERC721_ABI.as_bytes()).unwrap();
 
                     // Try to decode the Transfer event
                     if let Ok(event) = contract.event("Transfer") {
