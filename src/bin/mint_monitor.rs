@@ -28,7 +28,7 @@ async fn fetch_block(web3: &Web3<Http>, block_num: u64) -> web3::Result<Option<B
     let start = Instant::now();
     let block = web3.eth().block_with_txs(block_id).await?;
     let duration = start.elapsed();
-    println!("fetch_block: () is: {:?}", duration);
+    println!("fetch_block: {:?}", duration);
     Ok(block)
 }
 
@@ -43,7 +43,7 @@ async fn process_mint_event(block:Block<Transaction>, web3: &Web3<Http>) -> web3
         let start = Instant::now();
         let receipt = web3.eth().transaction_receipt(tx.hash).await?;
         let duration = start.elapsed();
-        println!("fetch transaction_receipt : () is: {:?}", duration);
+        println!("fetch transaction_receipt: {:?}", duration);
 
         if let Some(r) = receipt {
             for log in r.logs {
