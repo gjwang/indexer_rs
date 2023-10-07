@@ -16,3 +16,4 @@ scylla = {version = "0.10.0", features = ["ssl", "cloud"]}
 tokio = { version = "1.32.0", features = ["full"] }
 fstrings = "0.2"
 ethabi = "18.0.0"
+serde = { version = "1.0", features = ["derive"] }
