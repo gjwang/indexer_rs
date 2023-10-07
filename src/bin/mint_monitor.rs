@@ -1,3 +1,4 @@
+use std::fmt::format;
 use std::time::Duration;
 
 extern crate web3;
@@ -9,13 +10,13 @@ extern crate fstrings;
 use web3::transports::Http;
 use web3::Web3;
 use web3::types::{BlockNumber, Transaction, Address, U64, BlockId};
-
+use dirs;
 extern crate dotenv;
+
 
 mod json_storage;
 use json_storage::{read_json_file, write_json_file, BlockchainInfo};
 use std::fs;
-use std::path::Path;
 
 const ERC721_ABI_FILE: &str = "src/abi/erc721_abi.json";
 
@@ -68,10 +69,16 @@ async fn main() -> web3::Result<()> {
     let http = Http::new(rpc)?;
     let web3 = Web3::new(http);
 
+    let home_dir = dirs::home_dir().unwrap();
+
+    const base_path: &str = "data/indexer_rs";
+    const file_name: &str = "block_high_data.json";
+    let full_filename = home_dir.join(f!("{base_path}/{file_name}"));
+    println!("full_filename {:?}", full_filename);
+
     loop {
-        let path = "data.json";
         let mut  eth_last_blk_num = 0;
-        let mut data = read_json_file(&path).await.unwrap();
+        let mut data = read_json_file(&full_filename).await.unwrap();
 
         for blk_chian in data.iter_mut() {
             println!("{:?}", blk_chian);
@@ -100,7 +107,7 @@ async fn main() -> web3::Result<()> {
                     println!("Updated ETH block_num: {}", blk_chian.block_num);
                 }
             }
-            write_json_file(&path, &data).await.unwrap();
+            write_json_file(&full_filename, &data).await.unwrap();
             println!("Updated data: {:?}", data);
         }
 
