@@ -34,10 +34,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Read the JSON file
     let mut data = read_json_file(&path).await?;
-    for entry in data.iter_mut() {
-        println!("{:?}", entry);
+    for blk_chian in data.iter_mut() {
+        println!("{:?}", blk_chian);
         // Modify the data (for demonstration purposes)
-        entry.block_num += 1;
+        blk_chian.block_num += 1;
     }
 
     // Write the modified data back to the JSON file
