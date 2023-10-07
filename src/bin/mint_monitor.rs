@@ -70,8 +70,7 @@ async fn process_mint_event(block:Block<Transaction>, web3: &Web3<Http>) -> web3
                         let to: ethabi::Address = decoded.params[1].value.clone().into_address().unwrap();
 
                         if from == ethabi::Address::default() {
-                            println!("Mint event detected!");
-                            println!("Minted to: {:?}", to);
+                            info!("Mint event detected! Minted to: {:?}", to);
                         }
                     }
                 }
