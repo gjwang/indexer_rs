@@ -14,10 +14,18 @@ extern crate dotenv;
 
 mod json_storage;
 use json_storage::{read_json_file, write_json_file, BlockchainInfo};
+use std::fs;
+use std::path::Path;
 
+const ERC721_ABI_FILE: &str = "abi/erc721_abi.json";
 
 async fn monitor_mint_event(block_number: U64, web3: &Web3<Http>) -> web3::Result<()>   {    // Fetch the block data
     let block = web3.eth().block_with_txs(web3::types::BlockId::Number(block_number.into())).await?;
+    
+    let path = ERC721_ABI_FILE;
+    let content = fs::read_to_string(path)?;
+
+    let contract = ethabi::Contract::load(content.as_bytes()).unwrap();
 
     if let Some(b) = block {
         for tx in b.transactions {
@@ -26,7 +34,7 @@ async fn monitor_mint_event(block_number: U64, web3: &Web3<Http>) -> web3::Resul
                 for log in r.logs {
                     let raw_log = (log.topics, log.data.0);
                     // Assuming you have the ERC-721 contract ABI
-                    let contract = ethabi::Contract::load(ERC721_ABI.as_bytes()).unwrap();
+                    // let contract = ethabi::Contract::load(ERC721_ABI.as_bytes()).unwrap();
 
                     // Try to decode the Transfer event
                     if let Ok(event) = contract.event("Transfer") {
@@ -56,7 +64,6 @@ async fn main() -> web3::Result<()> {
     let infura_api_key = std::env::var("INFURA_API_KEY").expect("INFURA_API_KEY not found");
     println!("INFURA_API_KEY: {}", infura_api_key);
 
-    // let rpc: &String = &format!("https://mainnet.infura.io/v3/{}", infura_api_key);
     let rpc: &String = &f!("https://mainnet.infura.io/v3/{infura_api_key}");
 
     let http = Http::new(rpc)?;
@@ -108,7 +115,6 @@ async fn main() -> web3::Result<()> {
         }
 
         // Wait for a specified duration before polling again.
-        // You can adjust this duration as needed.
         tokio::time::sleep(Duration::from_secs(sleep_sec)).await;
     }
 
@@ -117,29 +123,29 @@ async fn main() -> web3::Result<()> {
 
 // ERC-721 ABI for the Transfer event
 // This is a very minimal ABI. In a real application, you'd probably load this from a file or an external source.
-const ERC721_ABI: &str = r#"
-[
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": true,
-                "name": "_from",
-                "type": "address"
-            },
-            {
-                "indexed": true,
-                "name": "_to",
-                "type": "address"
-            },
-            {
-                "indexed": true,
-                "name": "_tokenId",
-                "type": "uint256"
-            }
-        ],
-        "name": "Transfer",
-        "type": "event"
-    }
-]
-"#;
+// const ERC721_ABI: &str = r#"
+// [
+//     {
+//         "anonymous": false,
+//         "inputs": [
+//             {
+//                 "indexed": true,
+//                 "name": "_from",
+//                 "type": "address"
+//             },
+//             {
+//                 "indexed": true,
+//                 "name": "_to",
+//                 "type": "address"
+//             },
+//             {
+//                 "indexed": true,
+//                 "name": "_tokenId",
+//                 "type": "uint256"
+//             }
+//         ],
+//         "name": "Transfer",
+//         "type": "event"
+//     }
+// ]
+// "#;
