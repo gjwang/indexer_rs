@@ -1,6 +1,7 @@
 // use std::fmt::format;
 use std::time::Duration;
 use futures::future::join_all;
+use std::time::Instant;
 
 extern crate web3;
 extern crate ethabi;
@@ -24,7 +25,10 @@ const ERC721_ABI_FILE: &str = "src/abi/erc721_abi.json";
 
 async fn fetch_block(web3: &Web3<Http>, block_num: u64) -> web3::Result<Option<Block<Transaction>>> {
     let block_id = BlockId::Number(BlockNumber::Number(U64::from(block_num)));
+    let start = Instant::now();
     let block = web3.eth().block_with_txs(block_id).await?;
+    let duration = start.elapsed();
+    println!("fetch_block: () is: {:?}", duration);
     Ok(block)
 }
 
@@ -36,7 +40,11 @@ async fn process_mint_event(block:Block<Transaction>, web3: &Web3<Http>) -> web3
 
     for tx in block.transactions {
         //TODO: make this batch request
+        let start = Instant::now();
         let receipt = web3.eth().transaction_receipt(tx.hash).await?;
+        let duration = start.elapsed();
+        println!("fetch transaction_receipt : () is: {:?}", duration);
+
         if let Some(r) = receipt {
             for log in r.logs {
                 let raw_log = (log.topics, log.data.0);
