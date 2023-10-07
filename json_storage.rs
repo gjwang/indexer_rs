@@ -11,8 +11,8 @@ use std::path::Path;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct BlockchainInfo {
-    pub(crate) network: String,
-    pub(crate) block_num: u64,
+    pub network: String,
+    pub block_num: u64,
 }
 
 

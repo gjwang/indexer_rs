@@ -4,31 +4,19 @@ extern crate web3;
 extern crate ethabi;
 
 use serde::{Deserialize, Serialize};
-use std::fs;
-use std::path::Path;
-
-use web3::transports::Http;
-use web3::types::U64;
-use web3::Web3;
 
 #[macro_use]
 extern crate fstrings;
+
+use web3::transports::Http;
+use web3::Web3;
+use web3::types::{BlockNumber, Transaction, Address, U64, BlockId};
+
 extern crate dotenv;
 
+mod json_storage;
+use json_storage::{read_json_file, write_json_file, BlockchainInfo};
 
-
-
-#[derive(Debug, Serialize, Deserialize)]
-struct BlockchainInfo {
-    network: String,
-    block_num: u64,
-}
-
-async fn read_json_file<P: AsRef<Path>>(path: P) -> Result<Data, Box<dyn std::error::Error>> {
-    let content = fs::read_to_string(path)?;
-    let data: Data = serde_json::from_str(&content)?;
-    Ok(data)
-}
 
 async fn monitor_mint_event(block_number: U64, web3: &Web3<Http>) -> web3::Result<()>   {    // Fetch the block data
     let block = web3.eth().block_with_txs(web3::types::BlockId::Number(block_number.into())).await?;
@@ -77,19 +65,38 @@ async fn main() -> web3::Result<()> {
     let web3 = Web3::new(http);
 
     loop {
-        let result = web3.eth().block_number().await;
+        let path = "data.json";
+        let mut  eth_last_blk_num = 0;
+        let mut data = read_json_file(&path).await.unwrap();
 
-        match result {
-            Ok(block_num) => {
-                println!("Latest Ethereum block number: {}", block_num);
-                // Additional logic using `web3` can go here if necessary...
-                let result = web3.eth().block_number().await;
-                monitor_mint_event(block_num, &web3).await?;
+        for blk_chian in data.iter_mut() {
+            println!("{:?}", blk_chian);
+            if blk_chian.network == "eth" {
+                eth_last_blk_num = blk_chian.block_num;
             }
-            Err(e) => {
-                eprintln!("Failed to fetch latest block number: {}", e);
-                // Handle the error or perhaps add a delay before retrying.
+        }
+        println!("eth_last_blk_num={}", eth_last_blk_num);
+
+        let latest_block = web3.eth().block_number().await?.as_u64();
+        let start_block = eth_last_blk_num;
+
+        println!("start to scan from{} to {}", start_block, latest_block);
+
+        for block_num in start_block..=latest_block {
+            println!("Scan block_num: {:?}", block_num);
+            let block_number = U64::from(block_num);
+            monitor_mint_event(block_number, &web3).await?;
+
+            //save last_blk_num
+            for blk_chian in data.iter_mut() {
+                println!("{:?}", blk_chian);
+                if blk_chian.network == "eth" {
+                    blk_chian.block_num = block_num
+                }
             }
+            write_json_file(&path, &data).await.unwrap();
+            println!("Updated data: {:?}", data);
+
         }
 
         // Wait for a specified duration before polling again.
