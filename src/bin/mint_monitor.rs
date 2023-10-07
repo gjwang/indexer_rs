@@ -1,5 +1,6 @@
-use std::fmt::format;
+// use std::fmt::format;
 use std::time::Duration;
+use futures::future::join_all;
 
 extern crate web3;
 extern crate ethabi;
@@ -20,7 +21,6 @@ use std::fs;
 
 const ERC721_ABI_FILE: &str = "src/abi/erc721_abi.json";
 
-use futures::future::join_all;
 
 async fn fetch_block(web3: &Web3<Http>, block_num: u64) -> web3::Result<Option<Block<Transaction>>> {
     let block_id = BlockId::Number(BlockNumber::Number(U64::from(block_num)));
@@ -59,50 +59,47 @@ async fn process_mint_event(block:Block<Transaction>, web3: &Web3<Http>) -> web3
     Ok(())
 }
 
-async fn monitor_mint_event(block_number: U64, web3: &Web3<Http>) -> web3::Result<()> {    // Fetch the block data
-    //TODO batch poll
-    let block = web3.eth().block_with_txs(web3::types::BlockId::Number(block_number.into())).await?;
+// async fn monitor_mint_event(block_number: U64, web3: &Web3<Http>) -> web3::Result<()> {    // Fetch the block data
+//     //TODO batch poll
+//     let block = web3.eth().block_with_txs(web3::types::BlockId::Number(block_number.into())).await?;
+//
+//     let path = ERC721_ABI_FILE;
+//     let content = fs::read_to_string(path)?;
+//
+//     let contract = ethabi::Contract::load(content.as_bytes()).unwrap();
+//
+//     if let Some(b) = block {
+//         for tx in b.transactions {
+//             let receipt = web3.eth().transaction_receipt(tx.hash).await?;
+//             if let Some(r) = receipt {
+//                 for log in r.logs {
+//                     let raw_log = (log.topics, log.data.0);
+//
+//                     // Try to decode the Transfer event
+//                     if let Ok(event) = contract.event("Transfer") {
+//                         if let Ok(decoded) = event.parse_log(raw_log.into()) {
+//                             let from: ethabi::Address = decoded.params[0].value.clone().into_address().unwrap();
+//                             let to: ethabi::Address = decoded.params[1].value.clone().into_address().unwrap();
+//
+//                             if from == ethabi::Address::default() {
+//                                 println!("Mint event detected!");
+//                                 println!("Minted to: {:?}", to);
+//                             }
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//     } else {
+//         println!("Block data not found.");
+//     }
+//
+//     Ok(())
+// }
 
-    let path = ERC721_ABI_FILE;
-    let content = fs::read_to_string(path)?;
-
-    let contract = ethabi::Contract::load(content.as_bytes()).unwrap();
-
-    if let Some(b) = block {
-        for tx in b.transactions {
-            let receipt = web3.eth().transaction_receipt(tx.hash).await?;
-            if let Some(r) = receipt {
-                for log in r.logs {
-                    let raw_log = (log.topics, log.data.0);
-
-                    // Try to decode the Transfer event
-                    if let Ok(event) = contract.event("Transfer") {
-                        if let Ok(decoded) = event.parse_log(raw_log.into()) {
-                            let from: ethabi::Address = decoded.params[0].value.clone().into_address().unwrap();
-                            let to: ethabi::Address = decoded.params[1].value.clone().into_address().unwrap();
-
-                            if from == ethabi::Address::default() {
-                                println!("Mint event detected!");
-                                println!("Minted to: {:?}", to);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    } else {
-        println!("Block data not found.");
-    }
-
-    Ok(())
-}
-
-async fn batch_request_blocks(start_block: u64, end_block: u64, web3: &Web3<Http>) -> Result<Vec<web3::Result<Option<Block<Transaction>>>>, web3::Error> {
-    // let start_block = 1_000_000;
-    // let end_block = 1_000_010; // Fetch 10 blocks for this example
-
+async fn batch_request_blocks(start_block: u64, end_block: u64, web3: &Web3<Http>)
+    -> Result<Vec<web3::Result<Option<Block<Transaction>>>>, web3::Error> {
     let mut tasks = Vec::new();
-
     for block_num in start_block..=end_block {
         let web3_clone = web3.clone();
         let task = tokio::spawn(async move {
@@ -135,7 +132,6 @@ async fn main() -> web3::Result<()> {
     let web3 = Web3::new(http);
 
     let home_dir = dirs::home_dir().unwrap();
-
     const BASE_PATH: &str = "data/indexer_rs";
     const FILE_NAME: &str = "block_high_data.json";
     let full_filename = home_dir.join(f!("{BASE_PATH}/{FILE_NAME}"));
@@ -184,27 +180,6 @@ async fn main() -> web3::Result<()> {
             }
         }
 
-        // println!("start to scan from {} to {}, late={} blocks", start_block, latest_block, latest_block-start_block);
-        //
-        // for block_num in start_block..=latest_block {
-        //     println!("Scan block_num: {:?}", block_num);
-        //     let block_number = U64::from(block_num);
-        //     monitor_mint_event(block_number, &web3).await?;
-        //
-        //     //save last_blk_num
-        //     for blk_chian in data.iter_mut() {
-        //         println!("{:?}", blk_chian);
-        //         if blk_chian.network == "eth" {
-        //             blk_chian.block_num = block_num;
-        //             eth_last_blk_num = block_num;
-        //             println!("Updated ETH block_num: {}", blk_chian.block_num);
-        //         }
-        //     }
-        //     write_json_file(&full_filename, &data).await.unwrap();
-        //     println!("Updated data: {:?}", data);
-        // }
-        //
-
         let latest_block = web3.eth().block_number().await?.as_u64();
         let delay_blk_num = latest_block - eth_last_blk_num;
         println!("delay_blk_num data: {}", delay_blk_num);
@@ -219,32 +194,3 @@ async fn main() -> web3::Result<()> {
 
     // Ok(())
 }
-
-// ERC-721 ABI for the Transfer event
-// This is a very minimal ABI. In a real application, you'd probably load this from a file or an external source.
-// const ERC721_ABI: &str = r#"
-// [
-//     {
-//         "anonymous": false,
-//         "inputs": [
-//             {
-//                 "indexed": true,
-//                 "name": "_from",
-//                 "type": "address"
-//             },
-//             {
-//                 "indexed": true,
-//                 "name": "_to",
-//                 "type": "address"
-//             },
-//             {
-//                 "indexed": true,
-//                 "name": "_tokenId",
-//                 "type": "uint256"
-//             }
-//         ],
-//         "name": "Transfer",
-//         "type": "event"
-//     }
-// ]
-// "#;
