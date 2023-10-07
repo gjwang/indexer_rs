@@ -35,6 +35,7 @@ async fn process_mint_event(block:Block<Transaction>, web3: &Web3<Http>) -> web3
     let contract = ethabi::Contract::load(content.as_bytes()).unwrap();
 
     for tx in block.transactions {
+        //TODO: make this batch request
         let receipt = web3.eth().transaction_receipt(tx.hash).await?;
         if let Some(r) = receipt {
             for log in r.logs {
@@ -152,7 +153,7 @@ async fn main() -> web3::Result<()> {
         let latest_block = web3.eth().block_number().await?.as_u64();
         let start_block = eth_last_blk_num;
 
-        let end_blk = (start_block + 50).min(latest_block);
+        let end_blk = (start_block + 10).min(latest_block);
         println!("start_block={} end_blk={}, latest_block={} late_blk={}", end_blk, start_block, latest_block, latest_block-end_blk);
 
         let block_vec = batch_request_blocks(start_block, end_blk, &web3).await?;
