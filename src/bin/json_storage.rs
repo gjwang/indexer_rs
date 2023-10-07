@@ -27,3 +27,5 @@ pub async fn write_json_file<P: AsRef<Path>>(path: P, data: &Vec<BlockchainInfo>
     fs::write(path, content)?;
     Ok(())
 }
+
+fn main() {}

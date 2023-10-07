@@ -9,7 +9,7 @@ extern crate fstrings;
 
 use web3::transports::Http;
 use web3::Web3;
-use web3::types::{BlockNumber, Transaction, Address, U64, BlockId};
+use web3::types::{BlockNumber, Transaction, Address, U64, BlockId, Block};
 use dirs;
 extern crate dotenv;
 
@@ -20,7 +20,17 @@ use std::fs;
 
 const ERC721_ABI_FILE: &str = "src/abi/erc721_abi.json";
 
-async fn monitor_mint_event(block_number: U64, web3: &Web3<Http>) -> web3::Result<()>   {    // Fetch the block data
+use futures::future::join_all;
+
+async fn fetch_block(web3: &Web3<Http>, block_num: u64) -> web3::Result<Option<Block<Transaction>>> {
+    let block_id = BlockId::Number(BlockNumber::Number(U64::from(block_num)));
+    let block = web3.eth().block_with_txs(block_id).await?;
+    Ok(block)
+}
+
+
+
+async fn monitor_mint_event(block_number: U64, web3: &Web3<Http>) -> web3::Result<()> {    // Fetch the block data
     //TODO batch poll
     let block = web3.eth().block_with_txs(web3::types::BlockId::Number(block_number.into())).await?;
 
@@ -58,6 +68,34 @@ async fn monitor_mint_event(block_number: U64, web3: &Web3<Http>) -> web3::Resul
     Ok(())
 }
 
+async fn batch_request_blocks(start_block: u64, end_block: u64, web3: &Web3<Http>) -> web3::Result<()> {
+    // let start_block = 1_000_000;
+    // let end_block = 1_000_010; // Fetch 10 blocks for this example
+
+    let mut tasks = Vec::new();
+
+    for block_num in start_block..=end_block {
+        let web3_clone = web3.clone();
+        let task = tokio::spawn(async move {
+            fetch_block(&web3_clone, block_num).await
+        });
+        tasks.push(task);
+    }
+
+    let results: Vec<_> = join_all(tasks).await.into_iter().map(|x| x.unwrap()).collect();
+
+    for block in results {
+        if let Ok(blk) = block {
+            if let Some(b) = blk {
+                println!("Block number: {:?}", b.number);
+                // println!("Block number: {:?}", b.transactions);
+            }
+        }
+    }
+
+    Ok(())
+}
+
 #[tokio::main]
 async fn main() -> web3::Result<()> {
     dotenv::dotenv().expect("Failed to read .env file");
@@ -76,6 +114,9 @@ async fn main() -> web3::Result<()> {
     let full_filename = home_dir.join(f!("{BASE_PATH}/{FILE_NAME}"));
     println!("full_filename {:?}", full_filename);
 
+    // batch_request_blocks
+
+
     loop {
         let mut  eth_last_blk_num = 0;
         let mut data = read_json_file(&full_filename).await.unwrap();
@@ -90,6 +131,11 @@ async fn main() -> web3::Result<()> {
 
         let latest_block = web3.eth().block_number().await?.as_u64();
         let start_block = eth_last_blk_num;
+
+        let end_blk = start_block + 10;
+        batch_request_blocks(start_block, end_blk, &web3).await;
+
+        // continue;
 
         println!("start to scan from {} to {}, late={} blocks", start_block, latest_block, latest_block-start_block);
 
