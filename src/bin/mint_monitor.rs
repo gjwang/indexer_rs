@@ -3,8 +3,6 @@ use std::time::Duration;
 extern crate web3;
 extern crate ethabi;
 
-use serde::{Deserialize, Serialize};
-
 #[macro_use]
 extern crate fstrings;
 
@@ -91,16 +89,27 @@ async fn main() -> web3::Result<()> {
             for blk_chian in data.iter_mut() {
                 println!("{:?}", blk_chian);
                 if blk_chian.network == "eth" {
-                    blk_chian.block_num = block_num
+                    blk_chian.block_num = block_num;
+                    eth_last_blk_num = block_num;
+                    println!("Updated ETH block_num: {}", blk_chian.block_num);
                 }
             }
             write_json_file(&path, &data).await.unwrap();
             println!("Updated data: {:?}", data);
         }
 
+        let latest_block = web3.eth().block_number().await?.as_u64();
+        let delay_blk_num = latest_block - eth_last_blk_num;
+        println!("delay_blk_num data: {}", delay_blk_num);
+
+        let mut sleep_sec  = 10;
+        if delay_blk_num == 0 {
+            sleep_sec = 0;
+        }
+
         // Wait for a specified duration before polling again.
         // You can adjust this duration as needed.
-        tokio::time::sleep(Duration::from_secs(10)).await;
+        tokio::time::sleep(Duration::from_secs(sleep_sec)).await;
     }
 
     // Ok(())
