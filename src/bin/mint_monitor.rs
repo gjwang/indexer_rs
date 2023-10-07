@@ -71,9 +71,9 @@ async fn main() -> web3::Result<()> {
 
     let home_dir = dirs::home_dir().unwrap();
 
-    const base_path: &str = "data/indexer_rs";
-    const file_name: &str = "block_high_data.json";
-    let full_filename = home_dir.join(f!("{base_path}/{file_name}"));
+    const BASE_PATH: &str = "data/indexer_rs";
+    const FILE_NAME: &str = "block_high_data.json";
+    let full_filename = home_dir.join(f!("{BASE_PATH}/{FILE_NAME}"));
     println!("full_filename {:?}", full_filename);
 
     loop {
