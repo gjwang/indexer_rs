@@ -80,7 +80,7 @@ async fn main() -> web3::Result<()> {
         let latest_block = web3.eth().block_number().await?.as_u64();
         let start_block = eth_last_blk_num;
 
-        println!("start to scan from{} to {}", start_block, latest_block);
+        println!("start to scan from{} to {}, late={} blocks", start_block, latest_block, latest_block-start_block);
 
         for block_num in start_block..=latest_block {
             println!("Scan block_num: {:?}", block_num);
@@ -96,7 +96,6 @@ async fn main() -> web3::Result<()> {
             }
             write_json_file(&path, &data).await.unwrap();
             println!("Updated data: {:?}", data);
-
         }
 
         // Wait for a specified duration before polling again.
