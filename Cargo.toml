@@ -23,6 +23,7 @@ log = "0.4"
 log4rs = { version = "1.0" }
 toml = "0.8.2"
 serde_derive = "1.0"
+redis = { version = "0.23.3", features = ["tokio-comp"] }
 
 [lib]
 name = "utils" # usually the name of your crate
