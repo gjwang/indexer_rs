@@ -19,6 +19,9 @@ use log::{error, info};
 
 mod json_storage;
 
+mod utils;
+use utils::{sleep};
+
 const ERC721_ABI_FILE: &str = "src/abi/erc721_abi.json";
 
 
@@ -175,7 +178,8 @@ async fn main() -> web3::Result<()> {
 
         if delay_blk_num == 0 {
             let sleep_sec = 10;
-            tokio::time::sleep(Duration::from_secs(sleep_sec)).await;
+            // tokio::time::sleep(Duration::from_secs(sleep_sec)).await;
+            sleep(sleep_sec).await;
         }
     }
 
