@@ -21,7 +21,7 @@ pub async fn read_json_file<T: DeserializeOwned>(path: &Path) -> Result<T, Box<d
 }
 
 pub async fn write_json_file<T: Serialize>(data: &T, path: &Path) -> Result<(), Box<dyn std::error::Error>> {
-    let content = serde_json::to_string(data)?;
+    let content = serde_json::to_string_pretty(data)?;
     fs::write(path, content)?;
     Ok(())
 }
