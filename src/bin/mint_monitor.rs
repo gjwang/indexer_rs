@@ -22,7 +22,7 @@ mod json_storage;
 
 // #[path = "../src/utils/utils.rs"]
 // mod utils;
-const ERC721_ABI_FILE: &str = "src/abi/erc721_abi.json";
+const ERC721_ABI_FILE: &str = "src/resources/abi/erc721_abi.json";
 const LOG_CONFIG_FILE: &str = "src/resources/config/log4rs.yml";
 
 async fn fetch_block(web3: &Web3<Http>, block_num: u64) -> web3::Result<Option<Block<Transaction>>> {
