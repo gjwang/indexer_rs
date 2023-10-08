@@ -1,0 +1,31 @@
+[server]
+host = "localhost"
+port = 8080
+
+[database]
+db_type = "postgres"
+username = "admin"
+password = "password123"
+host = "localhost"
+port = 5432
+dbname = "indexer_rs"
+
+[logging]
+level = "info"
+file_path = "/var/log/indexer_rs.log"
+
+[features]
+enable_feature_x = true
+enable_feature_y = false
+
+[api]
+version = "v1.0"
+timeout_seconds = 30
+
+[users]
+default_role = "guest"
+max_users = 1000
+
+[paths]
+data_directory = "/var/data/indexer_rs/"
+temp_directory = "/tmp/indexer_rs/"

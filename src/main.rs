@@ -1,7 +1,11 @@
-mod utils;
+use std::fs;
 
-use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{App, get, HttpResponse, HttpServer, post, Responder, web};
 use serde_json::json;
+
+use settings::settings::Settings;
+
+mod settings;
 
 #[get("/")]
 async fn hello() -> impl Responder {
@@ -20,6 +24,12 @@ async fn health() -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    let contents = fs::read_to_string("settings.toml")
+        .expect("Failed to read settings.toml");
+    let settings: Settings = toml::from_str(&contents)
+        .expect("Failed to parse settings.toml");
+    println!("{:#?}", settings);
+
     HttpServer::new(|| {
         App::new()
             .service(hello)

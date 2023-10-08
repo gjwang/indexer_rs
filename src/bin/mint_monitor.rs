@@ -8,18 +8,25 @@ use std::fs;
 
 use dirs;
 use futures::future::join_all;
+use log::info;
 use web3::transports::Http;
 use web3::types::{Block, BlockId, BlockNumber, Transaction, U64};
 use web3::Web3;
 
 use json_storage::{read_json_file, write_json_file};
-use log::{error, info};
 use utils::sleep;
+
+use crate::settings::Settings;
 
 mod json_storage;
 
+
+#[path = "../settings/settings.rs"]
+mod settings;
+
 const ERC721_ABI_FILE: &str = "src/resources/abi/erc721_abi.json";
 const LOG_CONFIG_FILE: &str = "src/resources/config/log4rs.yml";
+
 
 async fn fetch_block(web3: &Web3<Http>, block_num: u64) -> web3::Result<Option<Block<Transaction>>> {
     let block_id = BlockId::Number(BlockNumber::Number(U64::from(block_num)));
@@ -107,6 +114,12 @@ async fn main() -> web3::Result<()> {
     dotenv::dotenv().expect("Failed to read .env file");
     let infura_api_key = std::env::var("INFURA_API_KEY").expect("INFURA_API_KEY not found");
     println!("INFURA_API_KEY: {}", infura_api_key);
+
+    let contents = fs::read_to_string("src/resources/config/settings.toml")
+        .expect("Failed to read settings.toml");
+    let settings: Settings = toml::from_str(&contents)
+        .expect("Failed to parse settings.toml");
+    println!("{:#?}", settings);
 
     let rpc: &String = &f!("https://mainnet.infura.io/v3/{infura_api_key}");
 

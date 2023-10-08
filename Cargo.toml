@@ -21,6 +21,8 @@ dirs = "5.0.1"
 futures = "0.3.28"
 log = "0.4"
 log4rs = { version = "1.0" }
+toml = "0.8.2"
+serde_derive = "1.0"
 
 [lib]
 name = "utils" # usually the name of your crate
