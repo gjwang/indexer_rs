@@ -5,8 +5,6 @@ extern crate fstrings;
 extern crate web3;
 
 use std::fs;
-// use std::fmt::format;
-use std::time::Duration;
 
 use dirs;
 use futures::future::join_all;
@@ -17,11 +15,14 @@ use web3::Web3;
 use json_storage::{read_json_file, write_json_file};
 use log::{error, info};
 
-mod json_storage;
-
-mod utils;
 use utils::{sleep};
 
+// use utils::sleep;
+
+mod json_storage;
+
+// #[path = "../src/utils/utils.rs"]
+// mod utils;
 const ERC721_ABI_FILE: &str = "src/abi/erc721_abi.json";
 
 

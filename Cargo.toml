@@ -8,11 +8,11 @@ authors = ["0xMaster <guijiewan@gmail.com>"]
 
 [dependencies]
 actix-web = "4"
-serde_json="1.0"
+serde_json = "1.0"
 web3 = "0.19.0"
 dotenv = "0.15.0"
 anyhow = { version = "1.0.75", features = [] }
-scylla = {version = "0.10.0", features = ["ssl", "cloud"]}
+scylla = { version = "0.10.0", features = ["ssl", "cloud"] }
 tokio = { version = "1.32.0", features = ["full"] }
 fstrings = "0.2"
 ethabi = "18.0.0"
@@ -20,4 +20,8 @@ serde = { version = "1.0", features = ["derive"] }
 dirs = "5.0.1"
 futures = "0.3.28"
 log = "0.4"
-log4rs ={version = "1.0"}
+log4rs = { version = "1.0" }
+
+[lib]
+name = "utils" # usually the name of your crate
+path = "src/utils/utils.rs"
