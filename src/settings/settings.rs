@@ -2,23 +2,23 @@ use serde_derive::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub struct Settings {
-    server: Server,
-    database: Database,
-    logging: Logging,
-    features: Features,
-    api: Api,
-    users: Users,
-    paths: Paths,
+    pub server: Server,
+    pub database: Database,
+    pub logging: Logging,
+    pub features: Features,
+    pub api: Api,
+    pub users: Users,
+    pub paths: Paths,
 }
 
 #[derive(Debug, Deserialize)]
-struct Server {
+pub struct Server {
     host: String,
     port: u16,
 }
 
 #[derive(Debug, Deserialize)]
-struct Database {
+pub struct Database {
     db_type: String,
     username: String,
     password: String,
@@ -28,31 +28,31 @@ struct Database {
 }
 
 #[derive(Debug, Deserialize)]
-struct Logging {
+pub struct Logging {
     level: String,
     file_path: String,
 }
 
 #[derive(Debug, Deserialize)]
-struct Features {
+pub struct Features {
     enable_feature_x: bool,
     enable_feature_y: bool,
 }
 
 #[derive(Debug, Deserialize)]
-struct Api {
+pub struct Api {
     version: String,
     timeout_seconds: u32,
 }
 
 #[derive(Debug, Deserialize)]
-struct Users {
+pub struct Users {
     default_role: String,
     max_users: usize,
 }
 
 #[derive(Debug, Deserialize)]
-struct Paths {
+pub struct Paths {
     data_directory: String,
     temp_directory: String,
 }

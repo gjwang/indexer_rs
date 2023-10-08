@@ -9,13 +9,15 @@ use std::fs;
 use dirs;
 use futures::future::join_all;
 use log::info;
+use web3::signing::Key;
 use web3::transports::Http;
 use web3::types::{Block, BlockId, BlockNumber, Transaction, U64};
 use web3::Web3;
 
-use json_storage::{read_json_file, write_json_file};
-use utils::sleep;
+// use json_storage::write_json_file;
+use utils::{read_json_file, sleep, write_json_file};
 
+use crate::json_storage::BlockchainInfo;
 use crate::settings::Settings;
 
 mod json_storage;
@@ -120,7 +122,7 @@ async fn main() -> web3::Result<()> {
         .expect("Failed to read settings.toml");
     let settings: Settings = toml::from_str(&contents)
         .expect("Failed to parse settings.toml");
-    println!("{:#?}", settings);
+    println!("{:?}", settings.server);
 
     let rpc: &String = &f!("https://mainnet.infura.io/v3/{infura_api_key}");
 
@@ -141,7 +143,7 @@ async fn main() -> web3::Result<()> {
 
     loop {
         let mut eth_last_blk_num = 0;
-        let mut data = read_json_file(&full_filename).await.unwrap();
+        let mut data: Vec<BlockchainInfo> = read_json_file(&full_filename).await.expect("Read json file failed!");
 
         for blk_chian in data.iter_mut() {
             println!("{:?}", blk_chian);
@@ -176,7 +178,8 @@ async fn main() -> web3::Result<()> {
                             println!("Updated ETH block_num: {}", blk_chian.block_num);
                         }
                     }
-                    write_json_file(&full_filename, &data).await.unwrap();
+
+                    write_json_file(&data, &full_filename).await.expect("Write json failed");
                     println!("Updated data: {:?}", data);
                 }
             }
