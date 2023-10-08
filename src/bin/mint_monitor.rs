@@ -115,7 +115,8 @@ async fn main() -> web3::Result<()> {
     let infura_api_key = std::env::var("INFURA_API_KEY").expect("INFURA_API_KEY not found");
     println!("INFURA_API_KEY: {}", infura_api_key);
 
-    let contents = fs::read_to_string("src/resources/config/settings.toml")
+    const SETTING_FILE: &str = "src/resources/config/settings.toml";
+    let contents = fs::read_to_string(SETTING_FILE)
         .expect("Failed to read settings.toml");
     let settings: Settings = toml::from_str(&contents)
         .expect("Failed to parse settings.toml");
