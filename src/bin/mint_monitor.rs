@@ -1,25 +1,23 @@
-// use std::fmt::format;
-use std::time::Duration;
-use futures::future::join_all;
-use std::time::Instant;
-use log::{info, error};
-
-extern crate web3;
+extern crate dotenv;
 extern crate ethabi;
-
 #[macro_use]
 extern crate fstrings;
+extern crate web3;
 
-use web3::transports::Http;
-use web3::Web3;
-use web3::types::{BlockNumber, Transaction, Address, U64, BlockId, Block};
+use std::fs;
+// use std::fmt::format;
+use std::time::Duration;
+
 use dirs;
-extern crate dotenv;
+use futures::future::join_all;
+use web3::transports::Http;
+use web3::types::{Block, BlockId, BlockNumber, Transaction, U64};
+use web3::Web3;
 
+use json_storage::{read_json_file, write_json_file};
+use log::{error, info};
 
 mod json_storage;
-use json_storage::{read_json_file, write_json_file, BlockchainInfo};
-use std::fs;
 
 const ERC721_ABI_FILE: &str = "src/abi/erc721_abi.json";
 
@@ -34,16 +32,16 @@ async fn fetch_block(web3: &Web3<Http>, block_num: u64) -> web3::Result<Option<B
 }
 
 /**
- TODO: so we can fetch every thing from rpc and save it to a local DB, like Scylladb
-    parse what we want.
-    And later do different parse decoder base on local data.
-    No need to do duplicate request from remote RPC node any more
+TODO: so we can fetch every thing from rpc and save it to a local DB, like Scylladb
+   parse what we want.
+   And later do different parse decoder base on local data.
+   No need to do duplicate request from remote RPC node any more
 
-    And fetch block data order by reverse, handle the latest data first
+   And fetch block data order by reverse, handle the latest data first
  */
 
 
-async fn process_mint_event(block:Block<Transaction>, web3: &Web3<Http>) -> web3::Result<()> {    // Fetch the block data
+async fn process_mint_event(block: Block<Transaction>, web3: &Web3<Http>) -> web3::Result<()> {    // Fetch the block data
     let path = ERC721_ABI_FILE;
     let content = fs::read_to_string(path)?;
     let contract = ethabi::Contract::load(content.as_bytes()).unwrap();
@@ -83,7 +81,7 @@ async fn process_mint_event(block:Block<Transaction>, web3: &Web3<Http>) -> web3
 
 
 async fn batch_request_blocks(start_block: u64, end_block: u64, web3: &Web3<Http>)
-    -> Result<Vec<web3::Result<Option<Block<Transaction>>>>, web3::Error> {
+                              -> Result<Vec<web3::Result<Option<Block<Transaction>>>>, web3::Error> {
     let mut tasks = Vec::new();
     for block_num in start_block..=end_block {
         let web3_clone = web3.clone();
@@ -129,7 +127,7 @@ async fn main() -> web3::Result<()> {
     // error!("This is an error log.");
 
     loop {
-        let mut  eth_last_blk_num = 0;
+        let mut eth_last_blk_num = 0;
         let mut data = read_json_file(&full_filename).await.unwrap();
 
         for blk_chian in data.iter_mut() {
@@ -143,7 +141,7 @@ async fn main() -> web3::Result<()> {
         let start_block = eth_last_blk_num;
 
         let end_blk = (start_block + 10).min(latest_block);
-        println!("start_block={} end_blk={}, latest_block={} late_blk={}", end_blk, start_block, latest_block, latest_block-end_blk);
+        println!("start_block={} end_blk={}, latest_block={} late_blk={}", end_blk, start_block, latest_block, latest_block - end_blk);
         info!("start_block={} end_blk={}, latest_block={} late_blk={}", end_blk, start_block, latest_block, latest_block-end_blk);
 
         let block_vec = batch_request_blocks(start_block, end_blk, &web3).await?;
@@ -176,7 +174,7 @@ async fn main() -> web3::Result<()> {
         println!("delay_blk_num data: {}", delay_blk_num);
 
         if delay_blk_num == 0 {
-            let mut sleep_sec  = 10;
+            let sleep_sec = 10;
             tokio::time::sleep(Duration::from_secs(sleep_sec)).await;
         }
     }
