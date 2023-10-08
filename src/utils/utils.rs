@@ -1,5 +1,3 @@
-// src/utils/utils.rs
-
 use std::time::Duration;
 
 pub async fn sleep(secs: u64) {

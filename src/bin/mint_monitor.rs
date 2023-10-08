@@ -16,12 +16,8 @@ use json_storage::{read_json_file, write_json_file};
 use log::{error, info};
 use utils::sleep;
 
-// use utils::sleep;
-
 mod json_storage;
 
-// #[path = "../src/utils/utils.rs"]
-// mod utils;
 const ERC721_ABI_FILE: &str = "src/resources/abi/erc721_abi.json";
 const LOG_CONFIG_FILE: &str = "src/resources/config/log4rs.yml";
 
@@ -178,7 +174,6 @@ async fn main() -> web3::Result<()> {
 
         if delay_blk_num == 0 {
             let sleep_sec = 10;
-            // tokio::time::sleep(Duration::from_secs(sleep_sec)).await;
             sleep(sleep_sec).await;
         }
     }
