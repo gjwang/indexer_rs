@@ -14,8 +14,7 @@ use web3::Web3;
 
 use json_storage::{read_json_file, write_json_file};
 use log::{error, info};
-
-use utils::{sleep};
+use utils::sleep;
 
 // use utils::sleep;
 
@@ -24,7 +23,7 @@ mod json_storage;
 // #[path = "../src/utils/utils.rs"]
 // mod utils;
 const ERC721_ABI_FILE: &str = "src/abi/erc721_abi.json";
-
+const LOG_CONFIG_FILE: &str = "src/resources/config/log4rs.yml";
 
 async fn fetch_block(web3: &Web3<Http>, block_num: u64) -> web3::Result<Option<Block<Transaction>>> {
     let block_id = BlockId::Number(BlockNumber::Number(U64::from(block_num)));
@@ -125,7 +124,7 @@ async fn main() -> web3::Result<()> {
     println!("full_filename {:?}", full_filename);
 
     // Initialize log4rs with file rotation
-    log4rs::init_file("config/log4rs.yml", Default::default()).unwrap();
+    log4rs::init_file(LOG_CONFIG_FILE, Default::default()).unwrap();
 
     info!("full_filename {:?}", full_filename);
     // error!("This is an error log.");
